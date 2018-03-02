@@ -1,0 +1,41 @@
+language: node_js
+node_js:
+- node
+sudo: true
+cache:
+  yarn: true
+branches:
+  only:
+  - master
+env:
+- CXX=g++-7
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - g++-7
+os:
+- linux
+before_install:
+- wget https://github.com/Athenacle/athenacle.xyz/archive/master.zip
+- unzip master.zip
+- mv athenacle.xyz-master/* .
+- sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 0C49F3730359A14518585931BC711F9BA15703C6 # see https://github.com/travis-ci/travis-ci/issues/9037
+- curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+- echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+- sudo apt update
+- sudo apt install libvips libvips-dev yarn
+- git submodule update --init --recursive
+- git clone https://github.com/Athenacle/posts.git
+script:
+- yarn
+- yarn build
+before_deploy:
+- openssl aes-256-cbc -K $encrypted_985719e778e8_key -iv $encrypted_985719e778e8_iv -in travis.enc -out ./travis -d
+deploy:
+- provider: script
+  skip_cleanup: true
+  script: rsync --delete -Pav -e "ssh -o StrictHostKeyChecking=no -i ./travis  " ./public $deloy_user@$deploy_url:var/www/html/
+  on:
+    branch: master
