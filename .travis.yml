@@ -39,6 +39,6 @@ deploy:
 - provider: script
   skip_cleanup: true
   script: rsync --delete -Pav -e "ssh -o StrictHostKeyChecking=no -i ./travis  " ./public
-    $deloy_user@$deploy_url:var/www/html/
+    $deploy_user@$deploy_url:/var/www/html/
   on:
     branch: master
